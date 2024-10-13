@@ -98,7 +98,3 @@ To avoid disruptions, it is important to handle rate-limited requests gracefully
 - **Express.js** - Minimal and flexible Node.js web application framework.
 - **Zoom Server-to-Server OAuth API** - For secure communication with Zoom's API.
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open an issue or submit a pull request with improvements or new features.
-
