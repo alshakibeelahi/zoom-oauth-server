@@ -55,6 +55,7 @@ function formatDateTime(date, time) {
 }
 
 // Endpoint to create an online Zoom meeting
+// Endpoint to create an online Zoom meeting
 app.post('/create-meeting', async (req, res) => {
   const { topic, agenda, date, time, duration } = req.body; // Accept date, time, and duration
 
@@ -74,6 +75,9 @@ app.post('/create-meeting', async (req, res) => {
       settings: {
         host_video: false, // Do not start with host video on
         participant_video: false, // Do not start with participant video on
+        join_before_host: true, // Allow participants to join before host
+        enforce_login: false, // Disable login enforcement (optional)
+        waiting_room: false, // Disable waiting room so participants can join directly
       },
     };
 
@@ -89,10 +93,14 @@ app.post('/create-meeting', async (req, res) => {
       }
     );
 
+    // Calculate meeting end time based on start time and duration
+    const endTime = new Date(new Date(startTime).getTime() + (duration || 60) * 60000);
+
     // Send back the created meeting details
     res.json({
       meeting_url: response.data.join_url,
       start_time: response.data.start_time,
+      end_time: endTime.toISOString(), // Send the calculated end time
       agenda: response.data.agenda,
     });
   } catch (error) {
@@ -100,6 +108,23 @@ app.post('/create-meeting', async (req, res) => {
     res.status(500).send('Error creating meeting');
   }
 });
+
+// Endpoint to join the meeting
+app.get('/join-meeting', async (req, res) => {
+  const { meeting_url, end_time } = req.query;
+
+  // Check if the meeting time has expired
+  const currentTime = new Date();
+  const meetingEndTime = new Date(end_time);
+
+  if (currentTime > meetingEndTime) {
+    return res.status(400).send('Meeting time has expired, you cannot join.');
+  }
+
+  // If within time limit, redirect to the Zoom meeting URL
+  res.redirect(meeting_url);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
